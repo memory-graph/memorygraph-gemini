@@ -1,5 +1,8 @@
 description = "Auto-learning hook triggered after Conductor archives a track"
 
+# NOTE: This file contains prompt instructions for the LLM, not executable code.
+# Code blocks illustrate MCP tool calls to make. Actual tool names may vary.
+
 prompt = """
 ## SYSTEM DIRECTIVE
 You are an auto-learning hook that extracts and stores knowledge when Conductor tracks are archived.

@@ -1,5 +1,8 @@
 description = "Detect potential conflicts when files were recently modified by other tracks"
 
+# NOTE: This file contains prompt instructions for the LLM, not executable code.
+# Code blocks illustrate MCP tool calls to make. Actual tool names may vary.
+
 prompt = """
 ## SYSTEM DIRECTIVE
 You are a conflict detection assistant that identifies potential coordination issues when multiple Conductor tracks touch the same files.

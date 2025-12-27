@@ -14,7 +14,7 @@ MemoryGraph brings persistent, graph-based memory to Gemini CLI. It's the first 
 - 🤝 Perfect complement to Conductor's context-driven development
 - 💾 Works locally (SQLite) or syncs via cloud (memorygraph.dev)
 
-**[Install now](https://github.com/memorygraphdev/memorygraph-gemini)** | **[Documentation](https://memorygraph.dev/docs/quickstart/gemini-cli)**
+**[Install now](https://github.com/memory-graph/memorygraph-gemini)** | **[Documentation](https://memorygraph.dev/docs/quickstart/gemini-cli)**
 
 ---
 
@@ -116,7 +116,7 @@ Now your insights from archived tracks become searchable, reusable knowledge.
 pipx install memorygraphMCP
 
 # Install the Gemini CLI extension
-gemini extensions install https://github.com/memorygraphdev/memorygraph-gemini --auto-update
+gemini extensions install https://github.com/memory-graph/memorygraph-gemini --auto-update
 
 # Verify it's working
 gemini mcp list
@@ -255,7 +255,7 @@ MemoryGraph isn't just for Gemini CLI. It's the **memory layer for any AI coding
 - Integration templates (common workflow examples)
 
 ### Join the Community
-- **GitHub**: [memorygraphdev/memorygraph-gemini](https://github.com/memorygraphdev/memorygraph-gemini)
+- **GitHub**: [memory-graph/memorygraph-gemini](https://github.com/memory-graph/memorygraph-gemini)
 - **Docs**: [memorygraph.dev/docs](https://memorygraph.dev/docs)
 - **Issues**: Report bugs, request features
 - **Discussions**: Share your workflows
@@ -267,7 +267,7 @@ MemoryGraph isn't just for Gemini CLI. It's the **memory layer for any AI coding
 ```bash
 # Install
 pipx install memorygraphMCP
-gemini extensions install https://github.com/memorygraphdev/memorygraph-gemini --auto-update
+gemini extensions install https://github.com/memory-graph/memorygraph-gemini --auto-update
 
 # Start using
 gemini
@@ -303,10 +303,11 @@ For those interested in the implementation:
   "name": "memorygraph",
   "version": "1.0.0",
   "description": "Persistent graph-based memory for Gemini CLI",
-  "mcp_servers": {
+  "contextFileName": "GEMINI.md",
+  "mcpServers": {
     "memorygraph": {
       "command": "memorygraph",
-      "args": ["--mcp"]
+      "args": []
     }
   }
 }
@@ -350,7 +351,7 @@ interface Relationship {
 
 **Install it. Use it. Watch your AI get smarter over time.**
 
-[Get Started](https://memorygraph.dev/docs/quickstart/gemini-cli) | [GitHub](https://github.com/memorygraphdev/memorygraph-gemini) | [Documentation](https://memorygraph.dev/docs)
+[Get Started](https://memorygraph.dev/docs/quickstart/gemini-cli) | [GitHub](https://github.com/memory-graph/memorygraph-gemini) | [Documentation](https://memorygraph.dev/docs)
 
 ---
 

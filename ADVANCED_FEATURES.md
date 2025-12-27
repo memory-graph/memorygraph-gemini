@@ -384,8 +384,8 @@ Planned improvements for these features:
 
 These are new features! Your feedback helps improve them:
 
-- Found a bug? [Open an issue](https://github.com/memorygraphdev/memorygraph-gemini/issues)
-- Have a suggestion? [Start a discussion](https://github.com/memorygraphdev/memorygraph-gemini/discussions)
+- Found a bug? [Open an issue](https://github.com/memory-graph/memorygraph-gemini/issues)
+- Have a suggestion? [Start a discussion](https://github.com/memory-graph/memorygraph-gemini/discussions)
 - Want to contribute? PRs welcome!
 
 ---

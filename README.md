@@ -8,7 +8,7 @@
 
 MemoryGraph brings graph-based, persistent memory to Google's AI coding tool. Solutions you find today are searchable tomorrow. Patterns you learn in one project transfer to another. Knowledge that persists when Conductor archives.
 
-**[Get Started](https://memorygraph.dev/docs/quickstart/gemini-cli)** | **[Documentation](https://memorygraph.dev/docs)** | **[Report Issue](https://github.com/memorygraphdev/memorygraph-gemini/issues)**
+**[Get Started](https://memorygraph.dev/docs/quickstart/gemini-cli)** | **[Documentation](https://memorygraph.dev/docs)** | **[Report Issue](https://github.com/memory-graph/memorygraph-gemini/issues)**
 
 ## Why MemoryGraph?
 
@@ -37,7 +37,7 @@ pipx install memorygraphMCP
 ### Install Extension
 
 ```bash
-gemini extensions install https://github.com/memorygraphdev/memorygraph-gemini --auto-update
+gemini extensions install https://github.com/memory-graph/memorygraph-gemini --auto-update
 ```
 
 ### Verify Installation
@@ -512,15 +512,15 @@ MemoryGraph isn't just for Gemini CLI. It's the **memory layer for any AI coding
 
 - [MemoryGraph Documentation](https://memorygraph.dev/docs)
 - [Quickstart Guide for Gemini CLI](https://memorygraph.dev/docs/quickstart/gemini-cli)
-- [Main MemoryGraph Repository](https://github.com/memorygraphdev/memorygraph)
+- [Main MemoryGraph Repository](https://github.com/memory-graph/memorygraph)
 - [Gemini CLI Extensions Gallery](https://geminicli.com/extensions/)
-- [Report Issues](https://github.com/memorygraphdev/memorygraph-gemini/issues)
+- [Report Issues](https://github.com/memory-graph/memorygraph-gemini/issues)
 - [Blog Post: Announcing MemoryGraph for Gemini CLI](docs/blog-post-draft.md)
 
 ## Community
 
-- 🐛 **Found a bug?** [Open an issue](https://github.com/memorygraphdev/memorygraph-gemini/issues)
-- 💡 **Have an idea?** [Start a discussion](https://github.com/memorygraphdev/memorygraph-gemini/discussions)
+- 🐛 **Found a bug?** [Open an issue](https://github.com/memory-graph/memorygraph-gemini/issues)
+- 💡 **Have an idea?** [Start a discussion](https://github.com/memory-graph/memorygraph-gemini/discussions)
 - 📖 **Need help?** Check the [documentation](https://memorygraph.dev/docs)
 - 🎯 **Want to contribute?** PRs welcome!
 

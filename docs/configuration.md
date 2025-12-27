@@ -151,18 +151,19 @@ The extension reads configuration from `gemini-extension.json`:
   "mcpServers": {
     "memorygraph": {
       "command": "memorygraph",
-      "args": [],
-      "env": {
-        "MEMORY_BACKEND": "${MEMORY_BACKEND:-sqlite}",
-        "MEMORYGRAPH_API_KEY": "${MEMORYGRAPH_API_KEY}",
-        "MEMORYGRAPH_DATA_DIR": "${MEMORYGRAPH_DATA_DIR}"
-      }
+      "args": []
     }
   }
 }
 ```
 
-Environment variable substitution is automatic. Variables use the format `${VAR:-default}`.
+The extension uses your shell's environment variables. Set them in your shell profile (`~/.bashrc`, `~/.zshrc`) before starting Gemini CLI:
+
+```bash
+# In your shell profile
+export MEMORY_BACKEND=sqlite  # or neo4j, falkordb, cloud
+export MEMORYGRAPH_API_KEY=your_key  # required for cloud backend
+```
 
 ---
 

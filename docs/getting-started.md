@@ -24,7 +24,7 @@ memorygraph --version
 ### Install the Extension
 
 ```bash
-gemini extensions install https://github.com/memorygraphdev/memorygraph-gemini --auto-update
+gemini extensions install https://github.com/memory-graph/memorygraph-gemini --auto-update
 ```
 
 ### Verify Installation
@@ -146,7 +146,7 @@ gemini extensions list
 
 # Reinstall if needed
 gemini extensions uninstall memorygraph
-gemini extensions install https://github.com/memorygraphdev/memorygraph-gemini --auto-update
+gemini extensions install https://github.com/memory-graph/memorygraph-gemini --auto-update
 ```
 
 ### MCP server not connecting
@@ -173,5 +173,5 @@ If the directory doesn't exist, it will be created on first memory store.
 ## Need Help?
 
 - [Full Documentation](https://memorygraph.dev/docs)
-- [GitHub Issues](https://github.com/memorygraphdev/memorygraph-gemini/issues)
+- [GitHub Issues](https://github.com/memory-graph/memorygraph-gemini/issues)
 - [MemoryGraph Community](https://memorygraph.dev/community)

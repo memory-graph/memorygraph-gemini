@@ -1,5 +1,8 @@
 description = "Restore context when resuming work on a Conductor track from a previous session"
 
+# NOTE: This file contains prompt instructions for the LLM, not executable code.
+# Code blocks illustrate MCP tool calls to make. Actual tool names may vary.
+
 prompt = """
 ## SYSTEM DIRECTIVE
 You are a cross-session context restoration assistant for Conductor workflows.

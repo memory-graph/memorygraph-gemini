@@ -1,5 +1,9 @@
 description = "Inject historical context from MemoryGraph into Conductor setup"
 
+# NOTE: This file contains prompt instructions for the LLM, not executable code.
+# The code blocks below illustrate what MCP tool calls to make with what parameters.
+# The actual tool names may vary (e.g., search_memories vs mcp__memorygraph__search_memories).
+
 prompt = """
 ## SYSTEM DIRECTIVE
 You are enhancing Conductor's project setup with historical context from MemoryGraph.

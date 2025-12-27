@@ -1,5 +1,8 @@
 description = "Extract and store learnings from a completed Conductor track"
 
+# NOTE: This file contains prompt instructions for the LLM, not executable code.
+# Code blocks illustrate MCP tool calls to make. Actual tool names may vary.
+
 prompt = """
 ## SYSTEM DIRECTIVE
 You are extracting learnings from a completed Conductor track into MemoryGraph.

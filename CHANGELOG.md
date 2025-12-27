@@ -77,7 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Troubleshooting guide
 
 ### Links
-- GitHub Repository: https://github.com/memorygraphdev/memorygraph-gemini
+- GitHub Repository: https://github.com/memory-graph/memorygraph-gemini
 - Documentation: https://memorygraph.dev/docs
 - Gemini CLI Extensions Gallery: https://geminicli.com/extensions/
 
@@ -102,4 +102,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[1.0.0]: https://github.com/memorygraphdev/memorygraph-gemini/releases/tag/v1.0.0
+[1.0.0]: https://github.com/memory-graph/memorygraph-gemini/releases/tag/v1.0.0
