@@ -1,0 +1,359 @@
+description = "Auto-learning hook triggered after Conductor archives a track"
+
+prompt = """
+## SYSTEM DIRECTIVE
+You are an auto-learning hook that extracts and stores knowledge when Conductor tracks are archived.
+
+This command provides a lightweight, triggerable hook that detects recently archived Conductor tracks and automatically extracts learnings into MemoryGraph for future retrieval.
+
+## USAGE CONTEXT
+
+This command can be triggered:
+- **Manually** after archiving a track: `/memory:auto-learn`
+- **Via script** in a post-archive workflow (see Setup section)
+- **Periodically** to catch any missed archives
+
+## PROTOCOL
+
+### 1. Detect Recently Archived Tracks
+
+Scan for tracks that were recently archived but haven't been processed for learning extraction.
+
+**Archive detection strategy:**
+- Check `conductor/archive/` directory for track directories
+- Look for tracks archived within the last 7 days (configurable)
+- Identify tracks not yet processed by checking for MemoryGraph markers
+
+**Implementation:**
+```javascript
+// Check for archive directory
+const archiveDir = 'conductor/archive/';
+
+// Find recently archived tracks
+// Each track directory contains spec.md, plan.md with archive timestamp
+// Look for tracks without ".memorygraph-processed" marker file
+```
+
+### 2. Prompt User for Confirmation
+
+Present discovered tracks to the user:
+
+```
+## Auto-Learning Detection
+
+Found {N} recently archived track(s) not yet processed:
+
+1. **feature-user-auth** (archived 2 days ago)
+   - 15 completed tasks
+   - 3 blockers resolved
+   - 8 code files modified
+
+2. **bugfix-checkout-flow** (archived 1 day ago)
+   - 5 completed tasks
+   - 1 critical bug fixed
+   - 3 code files modified
+
+Process all tracks? (y/n)
+Or select specific tracks: (1, 2, or 1-2)
+```
+
+### 3. Extract Learnings Per Track
+
+For each selected track, use the same extraction logic as `/memory:learn-track`:
+
+**Key actions:**
+1. Read track artifacts (spec.md, plan.md)
+2. Extract learnings by category
+3. Create memory nodes with appropriate types
+4. Establish relationships between memories
+5. Tag with project and technology metadata
+
+**Reference the full protocol from `/memory:learn-track` for detailed extraction steps.**
+
+### 4. Mark Tracks as Processed
+
+After successful extraction, create a marker to prevent re-processing:
+
+```javascript
+// Create marker file in archive track directory
+// conductor/archive/feature-user-auth/.memorygraph-processed
+// Contains: { "processed_at": "2025-12-27T10:30:00Z", "memories_created": 14 }
+```
+
+### 5. Aggregate Reporting
+
+After processing all tracks, provide summary:
+
+```
+## Auto-Learning Summary
+
+### Tracks Processed
+- feature-user-auth: 14 memories created, 8 relationships
+- bugfix-checkout-flow: 6 memories created, 3 relationships
+
+### Total Knowledge Captured
+- Problems: 4 (with 4 solutions)
+- Code Patterns: 7
+- Technologies: 2
+- Workflows: 1
+- Errors/Fixes: 2
+- Total memories: 20
+- Total relationships: 11
+
+### High-Value Learnings (Importance ≥ 0.8)
+1. JWT refresh middleware pattern - Prevents infinite loops
+2. Stripe idempotency key handling - Ensures payment integrity
+3. PostgreSQL connection pooling - Prevents exhaustion under load
+
+### MemoryGraph Growth
+- Previous total memories: 342
+- New memories added: 20
+- New total: 362
+- Knowledge base growth: 5.8%
+```
+
+## SETUP INSTRUCTIONS
+
+### Option 1: Manual Trigger (Recommended for Start)
+
+After archiving a track, simply run:
+```bash
+gemini> /memory:auto-learn
+```
+
+### Option 2: Script-Based Automation
+
+Create a wrapper script that triggers learning after archiving:
+
+**File: `scripts/archive-with-learning.sh`**
+```bash
+#!/bin/bash
+# Archive a Conductor track and extract learnings
+
+TRACK_NAME=$1
+
+if [ -z "$TRACK_NAME" ]; then
+  echo "Usage: ./archive-with-learning.sh <track-name>"
+  exit 1
+fi
+
+# Start Gemini session and run commands
+gemini <<EOF
+/conductor:archive ${TRACK_NAME}
+/memory:auto-learn
+EOF
+
+echo "Track archived and learnings extracted to MemoryGraph"
+```
+
+**Usage:**
+```bash
+./scripts/archive-with-learning.sh feature-user-auth
+```
+
+### Option 3: File Watcher (Advanced)
+
+Monitor the archive directory for new tracks and auto-trigger:
+
+**File: `scripts/watch-archives.sh`**
+```bash
+#!/bin/bash
+# Watch for new archives and trigger learning extraction
+
+ARCHIVE_DIR="conductor/archive"
+
+# Using fswatch (install via: brew install fswatch)
+fswatch -0 "$ARCHIVE_DIR" | while read -d "" event; do
+  echo "Archive detected: $event"
+
+  # Trigger auto-learn via Gemini CLI
+  gemini -c "/memory:auto-learn" &
+
+  # Rate limit to prevent spam
+  sleep 60
+done
+```
+
+**Setup:**
+```bash
+# Install fswatch
+brew install fswatch  # macOS
+# or: apt-get install fswatch  # Linux
+
+# Run watcher in background
+./scripts/watch-archives.sh &
+```
+
+### Option 4: Conductor Fork Integration (Future)
+
+For seamless UX, extend Conductor to call MemoryGraph on archive:
+
+**Conceptual integration in Conductor's archive command:**
+```python
+# In conductor's archive.py
+
+async def archive_track(track_name: str):
+    # ... existing archive logic ...
+
+    # After successful archive
+    if MEMORYGRAPH_ENABLED:
+        await trigger_learning_extraction(track_name)
+
+    logger.info(f"Track {track_name} archived and learnings extracted")
+```
+
+**This requires:**
+- Forking Conductor extension
+- Adding MemoryGraph MCP dependency
+- Exposing configuration option
+
+## SMART FEATURES
+
+### Avoid Duplicate Processing
+
+**Check before extraction:**
+- Verify track hasn't already been processed
+- Check for existing memories tagged with track ID
+- Skip if marker file exists
+
+### Handle Partial Processing
+
+If extraction fails mid-process:
+```
+⚠️ Partial Processing Detected
+
+Track "feature-user-auth" was partially processed:
+- 8 of 14 memories created
+- Process stopped at: "code pattern extraction"
+
+Would you like to:
+1. Resume from checkpoint
+2. Restart from beginning (skip existing memories)
+3. Mark as complete (current state)
+```
+
+### Batch Efficiency
+
+When processing multiple tracks:
+- Group similar memories for relationship detection
+- Identify cross-track patterns
+- Suggest meta-learnings
+
+**Example:**
+```
+💡 Cross-Track Pattern Detected:
+
+Both "feature-user-auth" and "feature-admin-dashboard" used JWT middleware.
+Consider creating a higher-level pattern memory:
+"JWT authentication pattern across projects"
+```
+
+## OUTPUT FORMAT
+
+```
+## Auto-Learning Execution Report
+
+### Detection Phase
+- Archive directory scanned: conductor/archive/
+- Tracks found: 3 total, 2 unprocessed
+- Date range: Last 7 days
+
+### Processing Phase
+✅ **feature-user-auth** (14 memories, 8 relationships)
+✅ **bugfix-checkout-flow** (6 memories, 3 relationships)
+⏭️  **refactor-api-layer** (skipped - already processed)
+
+### Knowledge Extraction Summary
+| Category | Count |
+|----------|-------|
+| Problems | 4 |
+| Solutions | 4 |
+| Code Patterns | 7 |
+| Technologies | 2 |
+| Workflows | 1 |
+| Errors/Fixes | 2 |
+| **Total** | **20** |
+
+### Relationships Created
+- SOLVES: 4
+- FIXES: 2
+- WORKS_WITH: 3
+- OCCURS_IN: 8
+- REQUIRES: 2
+
+### High-Impact Learnings
+1. 🌟 **JWT middleware refresh pattern** (Importance: 0.9)
+   - Prevents infinite redirect loops
+   - Applicable to: Any Next.js auth implementation
+
+2. 🌟 **Stripe webhook idempotency** (Importance: 0.85)
+   - Ensures payment integrity during retries
+   - Applicable to: Payment integrations
+
+3. 🌟 **PostgreSQL connection pooling** (Importance: 0.8)
+   - Prevents pool exhaustion under load
+   - Applicable to: High-traffic API services
+
+### Next Steps
+- ✅ Tracks marked as processed
+- 💡 Consider reviewing high-impact learnings for documentation
+- 🔍 Run `/memory:recall` to verify knowledge is searchable
+
+---
+💡 Tip: Set up automatic learning with Option 2 or 3 for seamless knowledge capture.
+```
+
+## IMPORTANT NOTES
+
+1. **Non-destructive**: Never modifies original track files
+2. **Idempotent**: Safe to run multiple times (skips already processed)
+3. **Configurable**: Time window and filtering can be adjusted
+4. **Privacy-aware**: Same sanitization as `/memory:learn-track`
+5. **Incremental**: Can process tracks individually or in batches
+
+## ERROR HANDLING
+
+### Archive Directory Not Found
+```
+❌ Archive directory not found: conductor/archive/
+
+This command requires Conductor to be set up with archive functionality.
+
+Have you:
+- Installed the Conductor extension?
+- Archived at least one track?
+
+Check Conductor documentation: /conductor:help
+```
+
+### No Unprocessed Tracks
+```
+✅ All archived tracks have been processed!
+
+Archive directory: conductor/archive/
+Tracks found: 12
+Already processed: 12
+Pending: 0
+
+Last processed track: "feature-checkout" (2 days ago)
+
+Nothing to do. Knowledge base is up to date.
+```
+
+### Processing Failure
+```
+❌ Failed to process track "feature-user-auth"
+
+Error: Unable to read spec.md
+Cause: File may be corrupted or permissions issue
+
+Would you like to:
+1. Skip this track and continue with others
+2. Retry with verbose logging
+3. Abort auto-learning
+```
+
+## BEGIN AUTO-LEARNING
+
+Now, proceed to detect and process recently archived Conductor tracks.
+"""

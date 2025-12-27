@@ -1,0 +1,320 @@
+description = "Inject historical context from MemoryGraph into Conductor setup"
+
+prompt = """
+## SYSTEM DIRECTIVE
+You are enhancing Conductor's project setup with historical context from MemoryGraph.
+
+This command searches MemoryGraph for relevant patterns, pitfalls, and insights based on the current project's tech stack and goals, then injects this intelligence into Conductor's context files.
+
+## USAGE CONTEXT
+
+This command should be run:
+- **After** `/conductor:setup` completes
+- **Before** `/conductor:newTrack` for first feature
+- **Anytime** you want to refresh project context with historical learnings
+
+## PROTOCOL
+
+### 1. Read Conductor Context Files
+
+Locate and analyze existing Conductor project files:
+
+**Primary context sources:**
+- `conductor/product.md` - Product vision, goals, target users
+- `conductor/tech-stack.md` - Technologies, frameworks, tools chosen
+- `conductor/workflow.md` - Development workflow and preferences
+- `conductor/code-style-guide.md` - Style conventions and patterns
+
+If these files don't exist, prompt user:
+"Conductor context files not found. Have you run `/conductor:setup` yet?"
+
+### 2. Extract Search Parameters
+
+From the context files, identify:
+
+**Technology Stack:**
+- Languages (e.g., Python, TypeScript, Go)
+- Frameworks (e.g., React, Next.js, FastAPI, Django)
+- Databases (e.g., PostgreSQL, MongoDB, Redis)
+- Infrastructure (e.g., AWS, Docker, Kubernetes)
+- Tools (e.g., pytest, Jest, Terraform)
+
+**Project Characteristics:**
+- Domain (e.g., e-commerce, SaaS, ML pipeline, API service)
+- Architecture (e.g., microservices, monolith, serverless)
+- Scale (e.g., MVP, growth stage, enterprise)
+- Team size (if mentioned)
+
+**Current Goals:**
+- Features planned (from product.md)
+- Problems to solve
+- Constraints or requirements
+
+### 3. Search MemoryGraph for Relevant Context
+
+Perform multiple targeted searches:
+
+#### 3.1 Technology-Specific Patterns
+```javascript
+// Search for patterns with matching tech stack
+await mcp__memorygraph__search_memories({
+  tags: ["react", "nextjs", "authentication"],  // Match tech stack
+  memory_types: ["code_pattern", "solution", "technology"],
+  min_importance: 0.6
+});
+```
+
+#### 3.2 Common Pitfalls
+```javascript
+// Search for problems with these technologies
+await mcp__memorygraph__search_memories({
+  tags: ["react", "nextjs"],
+  memory_types: ["problem", "error"],
+  min_importance: 0.5
+});
+```
+
+#### 3.3 Similar Projects
+```javascript
+// Fuzzy search for similar project domains
+await mcp__memorygraph__recall_memories({
+  query: "e-commerce authentication checkout",
+  memory_types: ["project", "solution", "workflow"]
+});
+```
+
+#### 3.4 Workflow Optimizations
+```javascript
+// Search for workflow improvements
+await mcp__memorygraph__search_memories({
+  memory_types: ["workflow"],
+  min_importance: 0.6
+});
+```
+
+### 4. Relevance Filtering
+
+For each memory retrieved, calculate relevance score:
+
+**High Relevance (Include Prominently):**
+- 80%+ technology overlap
+- Same domain/problem space
+- High importance (≥0.8) + recent
+- Directly applicable patterns
+
+**Medium Relevance (Include with Context):**
+- 50-80% technology overlap
+- Adjacent problem space
+- Medium importance (0.6-0.8)
+- Adaptable patterns
+
+**Low Relevance (Omit):**
+- <50% technology overlap
+- Different domain entirely
+- Low importance (<0.6)
+- Outdated or deprecated solutions
+
+### 5. Generate Historical Context Sections
+
+Create structured sections to inject into Conductor files:
+
+#### For `tech-stack.md` Enhancement
+
+Add a "Historical Insights" section:
+
+```markdown
+## Historical Insights from MemoryGraph
+
+### Proven Patterns with This Stack
+1. **[Pattern Name]** (Importance: 0.9, Used in: 3 projects)
+   - Description: Brief summary
+   - When to use: Context
+   - Key learning: Main takeaway
+
+2. **[Pattern Name]** (Importance: 0.8, Used in: 2 projects)
+   - ...
+
+### Known Pitfalls & Solutions
+⚠️ **[Pitfall Name]** - Encountered in [Project X]
+- Problem: What went wrong
+- Solution: How it was resolved
+- Prevention: How to avoid
+
+⚠️ **[Pitfall Name]** - Encountered in [Project Y]
+- ...
+
+### Integration Recommendations
+Based on past experience with [Technology]:
+- ✅ Consider: [Recommendation based on successful pattern]
+- ⚠️ Watch out for: [Warning based on past issue]
+- 💡 Tip: [Optimization or best practice]
+```
+
+#### For `product.md` Enhancement
+
+Add a "Related Historical Context" section:
+
+```markdown
+## Related Historical Context
+
+### Similar Past Projects
+- **[Project Name]**: [Brief description + similarity score]
+  - Key success: [What worked well]
+  - Key challenge: [What was difficult]
+  - Relevant insight: [Applicable learning]
+
+### Domain-Specific Learnings
+- **[Learning Title]**: [Description and recommendation]
+```
+
+#### For `workflow.md` Enhancement
+
+Add "Process Optimizations" section:
+
+```markdown
+## Process Optimizations from Historical Data
+
+### Recommended Practices
+Based on [X] past projects with similar stack:
+1. **[Practice Name]**: [Description and benefit]
+2. **[Practice Name]**: [Description and benefit]
+
+### Anti-Patterns to Avoid
+❌ **[Anti-pattern]**: [Why it failed in past projects]
+```
+
+### 6. Interactive Injection
+
+Present findings to user before modifying files:
+
+```
+## MemoryGraph Historical Context Summary
+
+Found {X} relevant patterns, {Y} pitfalls, and {Z} similar projects.
+
+### Top 3 Insights:
+1. [Most relevant insight]
+2. [Second most relevant]
+3. [Third most relevant]
+
+Would you like to:
+1. Inject all insights into Conductor context files
+2. Review and select which insights to include
+3. See full details before deciding
+4. Skip injection (just show summary)
+```
+
+### 7. File Modification
+
+After user approval, append/inject sections into Conductor files:
+
+**Safe injection approach:**
+- Preserve existing content
+- Add new section at end with clear "Generated by MemoryGraph" header
+- Include timestamp
+- Provide edit instructions if user wants to refine
+
+**Example injection:**
+```markdown
+<!-- Generated by MemoryGraph on 2025-12-27 -->
+## Historical Context from MemoryGraph
+
+[Generated content here]
+
+<!-- End MemoryGraph section -->
+```
+
+## OUTPUT FORMAT
+
+After execution, provide summary:
+
+```
+## Historical Context Injection Report
+
+### Search Results
+- **Technologies matched**: [List of tech tags searched]
+- **Memories retrieved**: {X} total
+  - {Y} high relevance
+  - {Z} medium relevance
+- **Projects analyzed**: {N} similar projects found
+
+### Injected Content
+- ✅ Enhanced `tech-stack.md` with {X} patterns and {Y} pitfalls
+- ✅ Enhanced `product.md` with {Z} related project insights
+- ✅ Enhanced `workflow.md` with {N} process optimizations
+
+### Key Insights Added
+1. **[Insight Type]**: [Brief description]
+2. **[Insight Type]**: [Brief description]
+3. **[Insight Type]**: [Brief description]
+
+### Cross-Project Intelligence
+- Found {X}% technology overlap with [Project Name]
+- Identified {Y} reusable patterns from past work
+- Surfaced {Z} common pitfalls to avoid
+
+### Recommendations
+- 🎯 High-priority pattern to consider: [Pattern name]
+- ⚠️ Critical pitfall to avoid: [Pitfall name]
+- 💡 Workflow optimization: [Workflow name]
+
+---
+💡 Tip: Run this command again after completing your first track to build
+project-specific memory and improve future context injection accuracy.
+```
+
+## SMART FEATURES
+
+### Avoid Noise
+- Filter out outdated memories (>2 years old for fast-moving tech)
+- Exclude patterns with low success rates
+- Skip generic advice in favor of specific, actionable insights
+
+### Highlight Conflicts
+If MemoryGraph suggests conflicting approaches:
+```
+⚠️ Conflicting Recommendations Detected:
+
+Pattern A (from Project X, 2024): Recommends using Redux
+Pattern B (from Project Y, 2025): Recommends using Zustand
+
+Context: Both projects were similar scale, but Project Y had better
+developer experience scores. Consider Project Y's approach as more recent.
+```
+
+### Suggest Relationships
+Identify opportunities to link current project to memory graph:
+```
+💡 Consider creating a project memory node for this Conductor project
+to enable future context injection and cross-project learning.
+```
+
+## EXAMPLE WORKFLOW
+
+**User runs:** `/memory:conductor-context`
+
+**System:**
+1. Reads `conductor/tech-stack.md` → Finds: Next.js, TypeScript, PostgreSQL
+2. Searches MemoryGraph:
+   - Found 12 Next.js patterns (8 high relevance)
+   - Found 5 PostgreSQL pitfalls
+   - Found 3 similar projects (e-commerce domain)
+3. Generates sections for each Conductor file
+4. Shows preview to user
+5. User approves → Injects content
+6. Reports summary with key insights highlighted
+
+**Result:** Conductor now has rich historical context for better decision-making.
+
+## IMPORTANT NOTES
+
+1. **Non-destructive**: Always preserve existing Conductor content
+2. **Timestamped**: Mark generated sections with dates for freshness tracking
+3. **Editable**: User can refine or remove injected sections
+4. **Incremental**: Can be re-run to update context as memory graph grows
+5. **Privacy-aware**: Never inject sensitive data (credentials, PII, secrets)
+
+## BEGIN CONTEXT INJECTION
+
+Now, proceed to analyze Conductor context files and inject relevant historical insights.
+"""

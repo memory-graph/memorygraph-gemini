@@ -1,0 +1,223 @@
+description = "Extract and store learnings from a completed Conductor track"
+
+prompt = """
+## SYSTEM DIRECTIVE
+You are extracting learnings from a completed Conductor track into MemoryGraph.
+
+This command analyzes completed Conductor tracks and creates persistent, searchable memory nodes that preserve valuable knowledge across projects and sessions.
+
+## PROTOCOL
+
+### 1. Locate Track Files
+First, identify the track directory:
+- Default location: `conductor/tracks/{track-name}/`
+- Contains: `spec.md`, `plan.md`, and potentially other artifacts
+
+Ask user for track name if not provided in args: "Which track would you like to extract learnings from?"
+
+### 2. Read Track Artifacts
+Load and analyze:
+- **spec.md**: Feature requirements, technical decisions, scope boundaries
+- **plan.md**: Completed tasks, blockers encountered, workflow adjustments
+- Any code files or documentation referenced in the track
+
+### 3. Extract Learnings by Category
+
+#### From spec.md
+**Extract as:**
+- Feature requirements → `general` memory with project-specific tags
+- Technical decisions → `technology` memory (e.g., "Chose PostgreSQL over MongoDB because...")
+- Architecture choices → `code_pattern` memory with rationale
+- Out of scope items → `project` memory documenting boundaries
+- Dependencies identified → `technology` memory with integration notes
+
+#### From plan.md
+**Extract as:**
+- **Completed tasks** → `task` memories (only important/reusable ones, not routine)
+- **Blockers + resolutions** → `problem` + `solution` memory pairs with SOLVES relationship
+- **Workflow adjustments** → `workflow` memories (process improvements)
+- **Performance issues** → `problem` memory linked to optimization `solution`
+- **Bug fixes** → `error` + `fix` memory pairs with FIXES relationship
+
+#### From implementation artifacts
+**Extract as:**
+- Reusable code patterns → `code_pattern` memory with example code
+- Integration approaches → `technology` memory with setup steps
+- Testing strategies → `workflow` memory with test patterns
+- Configuration decisions → `solution` memory with rationale
+
+### 4. Importance Scoring Guidelines
+
+**High Importance (0.8-0.9)**:
+- Cross-project reusable patterns
+- Major architectural decisions with broad impact
+- Novel solutions to common problems
+- Performance optimizations with measurable results
+- Security fixes or patterns
+
+**Medium Importance (0.6-0.7)**:
+- Project-specific but reusable decisions
+- Standard implementations with context-specific tweaks
+- Workflow improvements for this project type
+- Common integration patterns
+
+**Low Importance (0.4-0.5)**:
+- Routine task completions
+- Simple bug fixes without broader learnings
+- One-off project-specific choices
+- Straightforward feature implementations
+
+### 5. Create Memory Relationships
+
+Link related memories using these relationship types:
+
+**Problem-Solution Flow:**
+- `problem` → SOLVES → `solution`
+- `error` → FIXES → `fix`
+
+**Dependencies:**
+- `task` → REQUIRES → `technology`
+- `solution` → DEPENDS_ON → `code_pattern`
+
+**Evolution:**
+- `workflow` → IMPROVES → `workflow` (old)
+- `solution` → REPLACES → `solution` (deprecated)
+
+**Context:**
+- All memories → OCCURS_IN → `project` memory for this track
+- `code_pattern` → WORKS_WITH → `technology`
+
+### 6. Tagging Strategy
+
+Every memory should have 3-5 tags:
+- **Project identifier** (e.g., "conductor-track", "ecommerce-app")
+- **Technology stack** (e.g., "react", "python", "postgresql")
+- **Category** (e.g., "authentication", "api-design", "performance")
+- **Type** (e.g., "pattern", "pitfall", "optimization")
+
+Example tags: `["conductor-track-auth", "nextjs", "authentication", "jwt", "security-pattern"]`
+
+### 7. Storage Implementation
+
+Use the MemoryGraph MCP server tools to:
+
+```javascript
+// Store each memory
+await mcp__memorygraph__store_memory({
+  type: "solution",  // or problem, code_pattern, etc.
+  title: "Brief descriptive title",
+  content: "Detailed explanation with context, code snippets, rationale",
+  tags: ["project", "tech", "category"],
+  importance: 0.8,
+  context: {
+    project_path: "/path/to/project",
+    track_name: "feature-user-auth",
+    conductor_track: true
+  }
+});
+
+// Create relationships
+await mcp__memorygraph__create_relationship({
+  from_memory_id: problem_id,
+  to_memory_id: solution_id,
+  relationship_type: "SOLVES",
+  strength: 0.9,
+  confidence: 0.95,
+  context: "Solution resolved blocking issue with JWT validation"
+});
+```
+
+## OUTPUT FORMAT
+
+After processing, provide a summary report:
+
+```
+## Learning Extraction Report: {track-name}
+
+### Statistics
+- **Problems captured**: X (with Y solutions)
+- **Code patterns identified**: Z
+- **Technologies documented**: N
+- **Workflows improved**: M
+- **Total memories created**: T
+- **Relationships established**: R
+
+### High-Value Learnings (Importance ≥ 0.8)
+1. [Memory Title] - Brief description
+2. [Memory Title] - Brief description
+...
+
+### Memory Graph Additions
+- Added {X} nodes to project subgraph
+- Created {Y} cross-project links
+- Identified {Z} related historical patterns
+
+### Recommendations
+- Consider applying pattern X to project Y
+- Warning: Pitfall A also occurred in past project B
+- Tech stack similarity: This track mirrors project C (85% match)
+```
+
+## IMPORTANT NOTES
+
+1. **Quality over quantity**: Don't store every task. Focus on learnings with reuse value.
+2. **Preserve context**: Always include WHY a decision was made, not just WHAT.
+3. **Code snippets**: Include relevant code blocks for patterns (sanitized of secrets).
+4. **Link to existing**: Search for related memories before creating duplicates.
+5. **Project context**: Always tag with project path and track identifier for filtering.
+
+## EXAMPLE EXTRACTION
+
+**From plan.md task:**
+```markdown
+- [x] Implement JWT authentication
+  - Blocker: Token refresh logic caused infinite loop
+  - Solution: Moved refresh check to middleware, added expiry buffer
+```
+
+**Becomes:**
+
+**Problem Memory:**
+```
+Type: problem
+Title: JWT token refresh infinite loop in Next.js middleware
+Content: Encountered infinite redirect loop when implementing token refresh
+logic directly in page components. Each render triggered refresh check,
+which updated state, causing re-render. Loop continued until browser timeout.
+Tags: ["nextjs", "jwt", "authentication", "middleware", "infinite-loop"]
+Importance: 0.7
+```
+
+**Solution Memory:**
+```
+Type: solution
+Title: Middleware-based JWT refresh with expiry buffer pattern
+Content: Resolved by moving token refresh logic to Next.js middleware layer.
+Key insight: Check token expiry BEFORE page render using middleware.
+Add 5-minute buffer to expiry time to prevent race conditions.
+
+Code pattern:
+```typescript
+// middleware.ts
+export function middleware(request: NextRequest) {
+  const token = request.cookies.get('auth_token')?.value;
+  const expiresAt = parseJWT(token)?.exp;
+  const BUFFER_MINUTES = 5;
+
+  if (expiresAt - Date.now() < BUFFER_MINUTES * 60 * 1000) {
+    return NextResponse.redirect('/api/auth/refresh');
+  }
+  return NextResponse.next();
+}
+```
+
+Prevents infinite loops by running once per request cycle, not per render.
+Tags: ["nextjs", "jwt", "authentication", "middleware", "solution-pattern"]
+Importance: 0.8
+Relationship: SOLVES → problem memory
+```
+
+## BEGIN EXTRACTION
+
+Now, proceed to extract learnings from the specified Conductor track.
+"""

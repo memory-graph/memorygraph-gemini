@@ -1,0 +1,589 @@
+description = "Detect potential conflicts when files were recently modified by other tracks"
+
+prompt = """
+## SYSTEM DIRECTIVE
+You are a conflict detection assistant that identifies potential coordination issues when multiple Conductor tracks touch the same files.
+
+This command helps prevent merge conflicts, duplicated work, and coordination problems by analyzing file modification patterns across tracks using MemoryGraph.
+
+## USAGE CONTEXT
+
+Run this command:
+- **Before starting a new track** that touches existing code
+- **During track planning** to identify coordination needs
+- **When encountering unexpected changes** in files
+- **Periodically** for active multi-developer projects
+
+**Typical workflow:**
+```bash
+gemini> /conductor:newTrack feature-payment-processing
+# After creating spec.md with file paths
+gemini> /memory:detect-conflicts
+# Identifies that checkout.ts was modified by another track yesterday
+# Suggests reviewing changes before proceeding
+```
+
+## PROTOCOL
+
+### 1. Identify Files in Scope
+
+**Determine which files to check for conflicts:**
+
+#### Option A: Auto-detect from Current Track
+```javascript
+// If run within a Conductor track context
+const trackDir = getCurrentTrackDirectory();
+const specFile = `${trackDir}/spec.md`;
+const planFile = `${trackDir}/plan.md`;
+
+// Extract file paths mentioned in spec and plan
+const filePaths = extractFilePaths([specFile, planFile]);
+```
+
+#### Option B: Accept File Paths as Arguments
+```bash
+/memory:detect-conflicts src/auth/middleware.ts src/utils/jwt.ts
+```
+
+#### Option C: Prompt User
+```
+## Conflict Detection
+
+No active track detected. Which files would you like to check?
+
+Options:
+1. Specify files manually (comma-separated paths)
+2. Check entire directory (provide path)
+3. Analyze git staging area
+4. Exit
+
+Your choice:
+```
+
+### 2. Search MemoryGraph for File Context
+
+For each file in scope, search for recent modifications:
+
+#### 2.1 Direct File Mentions
+```javascript
+// Search for file_context memories
+await mcp__memorygraph__search_memories({
+  memory_types: ["file_context"],
+  tags: [filePath, normalizeFilePath(filePath)]
+});
+```
+
+#### 2.2 Track-Level Mentions
+```javascript
+// Search for tasks/solutions that reference this file
+await mcp__memorygraph__recall_memories({
+  query: `modified ${filePath} changed implementation`,
+  memory_types: ["task", "solution", "code_pattern"]
+});
+```
+
+#### 2.3 Related Memories
+```javascript
+// Get related memories to understand context
+for (const memory of fileMemories) {
+  await mcp__memorygraph__get_related_memories({
+    memory_id: memory.id,
+    relationship_types: ["MODIFIES", "DEPENDS_ON", "BLOCKS"],
+    max_depth: 2
+  });
+}
+```
+
+### 3. Temporal Analysis
+
+**Categorize conflicts by recency:**
+
+**Critical (< 24 hours ago):**
+- High likelihood of active work
+- Immediate coordination needed
+- Potential for merge conflicts
+
+**Recent (1-7 days ago):**
+- Changes may still be fresh
+- Review recommended
+- Possible architectural implications
+
+**Older (7-30 days ago):**
+- Context useful but less urgent
+- Review for understanding
+- Lower conflict risk
+
+**Historical (> 30 days ago):**
+- Background context only
+- Low immediate conflict risk
+- May inform design decisions
+
+### 4. Analyze Conflict Severity
+
+**For each detected conflict, assess severity:**
+
+**🔴 HIGH SEVERITY:**
+- Same file modified in multiple active tracks
+- Modifications in last 24 hours
+- Overlapping functionality (same functions/classes)
+- Different developers working simultaneously
+
+**🟡 MEDIUM SEVERITY:**
+- Same file modified in recently completed track
+- Changes within last week
+- Related but non-overlapping functionality
+- Sequential work (previous track just finished)
+
+**🟢 LOW SEVERITY:**
+- File mentioned in older tracks (> 7 days)
+- Different parts of codebase
+- Informational context only
+- Historical reference
+
+### 5. Generate Conflict Report
+
+Create a comprehensive conflict detection report:
+
+```
+## 🔍 Conflict Detection Report
+
+### Scan Summary
+- **Files analyzed**: {N}
+- **Conflicts detected**: {X} (🔴 {high} high, 🟡 {medium} medium, 🟢 {low} low)
+- **Tracks involved**: {Y}
+- **Time range**: Last {Z} days
+
+---
+
+### 🔴 HIGH SEVERITY CONFLICTS
+
+#### Conflict #1: `src/auth/middleware.ts`
+
+**Current track**: feature-payment-processing (you)
+**Conflicting track**: feature-2fa-authentication (active)
+
+**Timeline:**
+- Your track: Planning to modify this file (just started)
+- Other track: Modified 6 hours ago by {developer/session}
+
+**Changes made in other track:**
+- Added two-factor authentication middleware
+- Modified JWT validation logic
+- Introduced new dependencies: speakeasy, qrcode
+
+**Overlap analysis:**
+- ⚠️ HIGH OVERLAP: Both tracks modifying JWT validation
+- ⚠️ FUNCTION CONFLICT: validateToken() function changed
+- ⚠️ DEPENDENCY CONFLICT: Different middleware execution order
+
+**Related memories:**
+1. **JWT middleware refactor** (6 hours ago)
+   - Type: solution
+   - Content: "Moved 2FA check before JWT validation for security"
+   - Track: feature-2fa-authentication
+
+**Recommendations:**
+1. 🚨 URGENT: Coordinate with other track before proceeding
+2. Review recent changes: `git log src/auth/middleware.ts`
+3. Consider: Wait for other track to complete and merge
+4. Alternative: Modify different files to avoid conflict
+
+**Coordination steps:**
+```bash
+# Review what changed
+git diff HEAD~5 src/auth/middleware.ts
+
+# Check who modified it
+git log -n 5 --format="%h %an %ar: %s" src/auth/middleware.ts
+
+# If team environment, coordinate
+# Contact developer or wait for PR merge
+```
+
+---
+
+### 🟡 MEDIUM SEVERITY CONFLICTS
+
+#### Conflict #2: `src/utils/jwt.ts`
+
+**Current track**: feature-payment-processing (you)
+**Conflicting track**: bugfix-token-expiry (completed 2 days ago)
+
+**Timeline:**
+- Your track: Planning to add payment session tokens
+- Other track: Fixed token expiry bug (merged 2 days ago)
+
+**Changes made in other track:**
+- Fixed off-by-one error in expiry calculation
+- Updated token refresh logic
+- Added unit tests for expiry edge cases
+
+**Overlap analysis:**
+- ⚠️ MEDIUM OVERLAP: Different functions, same file
+- ✅ NO FUNCTION CONFLICT: You'll add new functions
+- ⚠️ CONTEXT IMPORTANT: Expiry logic changed recently
+
+**Related memories:**
+1. **Token expiry off-by-one bug** (2 days ago)
+   - Type: fix
+   - Content: "Token expiry was calculated in seconds, not milliseconds"
+   - Important: Ensure new code uses milliseconds
+
+**Recommendations:**
+1. ✅ SAFE TO PROCEED: No direct conflict
+2. 📖 REVIEW: Read recent changes to understand new expiry logic
+3. 🧪 TEST: Ensure your payment tokens use correct time units
+4. 💡 PATTERN: Follow new expiry calculation approach
+
+---
+
+### 🟢 LOW SEVERITY CONFLICTS
+
+#### Conflict #3: `src/config/stripe.ts`
+
+**Current track**: feature-payment-processing (you)
+**Historical reference**: feature-subscription-billing (completed 2 months ago)
+
+**Timeline:**
+- Your track: Planning to configure Stripe for payments
+- Other track: Set up Stripe for subscriptions (old)
+
+**Context from historical track:**
+- Initial Stripe integration
+- Webhook configuration
+- Test vs production key management
+
+**Related memories:**
+1. **Stripe webhook idempotency pattern** (2 months ago)
+   - Type: code_pattern
+   - Content: "Always check idempotency key to prevent duplicate charges"
+   - Importance: 0.9
+   - Highly relevant for your implementation
+
+**Recommendations:**
+1. ℹ️ INFORMATIONAL: No conflict, just useful context
+2. 💡 LEARN: Review subscription billing pattern for best practices
+3. 🔗 REUSE: Apply idempotency pattern from that track
+
+---
+
+### 📊 Conflict Summary Matrix
+
+| File | Severity | Last Modified | Track | Status |
+|------|----------|---------------|-------|--------|
+| src/auth/middleware.ts | 🔴 HIGH | 6 hrs ago | feature-2fa-auth | Active |
+| src/utils/jwt.ts | 🟡 MEDIUM | 2 days ago | bugfix-token-expiry | Completed |
+| src/config/stripe.ts | 🟢 LOW | 2 months ago | feature-subscription | Archived |
+
+---
+
+### 🎯 Action Plan
+
+#### Immediate Actions (Before Starting Implementation)
+1. 🚨 Coordinate on `src/auth/middleware.ts` - HIGH PRIORITY
+2. 📖 Review changes in `src/utils/jwt.ts` - 10 minutes
+3. 💡 Study Stripe idempotency pattern - Reference only
+
+#### During Implementation
+1. Monitor `src/auth/middleware.ts` for additional changes
+2. Run conflict detection again before committing
+3. Keep coordination notes in track plan.md
+
+#### Coordination Checklist
+- [ ] Reviewed recent changes to conflicting files
+- [ ] Coordinated with other track (if active conflict)
+- [ ] Tested integration with recent changes
+- [ ] Documented dependencies in spec.md
+- [ ] Added notes to avoid future conflicts
+
+---
+
+### 💡 Historical Insights
+
+**Patterns from MemoryGraph:**
+
+Based on {N} similar conflict scenarios in past tracks:
+
+1. **Most common conflict type**: Concurrent auth middleware changes
+   - Occurred: 3 times
+   - Resolution: Sequential implementation + careful merging
+
+2. **Success pattern**: Wait for active track to merge before starting
+   - Applied in: feature-checkout track
+   - Result: Zero merge conflicts
+
+3. **Pitfall to avoid**: Assuming no conflict without checking
+   - Occurred in: bugfix-payment track
+   - Result: 4 hours of merge conflict resolution
+
+---
+
+### 🔍 Advanced Analysis Options
+
+For deeper investigation:
+
+**Git-level conflict prediction:**
+```bash
+# Simulate merge to predict conflicts
+git merge-tree $(git merge-base HEAD other-branch) HEAD other-branch
+```
+
+**MemoryGraph query for related patterns:**
+```
+> What conflicts have occurred with auth middleware in past projects?
+> Show me solutions for coordinating concurrent track work
+```
+
+**Track coordination memory:**
+```
+> Store a note that feature-payment-processing depends on
+> feature-2fa-authentication completing first
+```
+
+---
+
+✅ Conflict detection complete. Review recommendations before proceeding.
+```
+
+## SMART FEATURES
+
+### Proactive Conflict Prevention
+
+**Before track creation:**
+```bash
+# Run during /conductor:newTrack
+gemini> /memory:detect-conflicts --preview src/auth/*.ts
+
+Preview Mode: Checking for conflicts before track creation...
+
+⚠️ Potential conflict detected:
+- src/auth/middleware.ts is currently being modified
+- Recommendation: Consider different approach or coordinate timing
+
+Proceed with track creation? (y/n)
+```
+
+### Cross-Developer Coordination
+
+**In team environments:**
+
+```
+👥 Multi-Developer Conflict Detected
+
+Track "feature-payment-processing" (you)
+  ↓ conflicts with ↓
+Track "feature-2fa-auth" (developer: Sarah)
+
+Both tracks modifying: src/auth/middleware.ts
+
+Coordination suggestions:
+1. Slack Sarah about coordination
+2. Review her PR before starting
+3. Consider rebasing your branch after her merge
+4. Schedule pairing session to align approach
+
+Would you like to:
+- [ ] Create coordination memory (links both tracks)
+- [ ] Set reminder to check PR status
+- [ ] Export conflict summary to markdown
+```
+
+### Pattern Learning
+
+**Store conflict patterns for future prevention:**
+
+```javascript
+// After conflict resolution
+await mcp__memorygraph__store_memory({
+  type: "workflow",
+  title: "Resolved auth middleware conflict between payment and 2FA tracks",
+  content: `
+    Conflict occurred when both tracks modified JWT validation.
+    Resolution: Waited for 2FA track to merge, then rebased payment track.
+    Time saved: ~3 hours of merge conflict resolution.
+    Pattern: Sequential implementation for middleware changes.
+  `,
+  tags: ["conflict-resolution", "auth", "coordination", "best-practice"],
+  importance: 0.7
+});
+
+// Link to both tracks
+await mcp__memorygraph__create_relationship({
+  from_memory_id: payment_track_id,
+  to_memory_id: twofa_track_id,
+  relationship_type: "DEPENDS_ON",
+  context: "Payment track waited for 2FA completion to avoid conflict"
+});
+```
+
+### False Positive Filtering
+
+**Reduce noise from low-risk conflicts:**
+
+```javascript
+// Smart filtering logic
+function shouldAlert(conflict) {
+  // Don't alert for:
+  if (conflict.file.endsWith('.test.ts')) return false; // Test files
+  if (conflict.file.includes('/docs/')) return false; // Documentation
+  if (conflict.timeSince > 90) return false; // Very old (90+ days)
+  if (conflict.track.status === 'archived') return false; // Archived
+  if (conflict.file.endsWith('.md')) return false; // Markdown docs
+
+  // Alert for everything else
+  return true;
+}
+```
+
+## INTEGRATION SCENARIOS
+
+### With Git
+
+**Combine MemoryGraph context with Git history:**
+
+```bash
+#!/bin/bash
+# Enhanced conflict detection with git
+
+# Get files in current track
+FILES=$(extract_files_from_spec)
+
+for FILE in $FILES; do
+  echo "Checking $FILE..."
+
+  # Git history
+  git log -n 5 --oneline $FILE
+
+  # MemoryGraph context
+  gemini -c "/memory:detect-conflicts $FILE" --compact
+
+  # Combined analysis
+  echo "---"
+done
+```
+
+### With Conductor Workflow
+
+**Auto-check during track lifecycle:**
+
+```python
+# Conceptual Conductor integration
+
+async def create_track(track_name: str):
+    # After spec.md is created
+    files = extract_files_from_spec(track_name)
+
+    # Auto-detect conflicts
+    conflicts = await detect_conflicts(files)
+
+    if conflicts.high_severity > 0:
+        print(f"⚠️  {conflicts.high_severity} high-severity conflicts detected!")
+        print("Run /memory:detect-conflicts for details")
+        user_confirm("Continue anyway?")
+
+    # Proceed with track creation
+```
+
+## ERROR HANDLING
+
+### No Files to Analyze
+```
+ℹ️  No files specified for conflict detection
+
+Options:
+1. Run within a Conductor track (auto-detects files from spec.md)
+2. Specify files: /memory:detect-conflicts <file1> <file2> ...
+3. Specify directory: /memory:detect-conflicts src/auth/
+
+Example: /memory:detect-conflicts src/auth/middleware.ts
+```
+
+### No Conflicts Found
+```
+✅ No conflicts detected!
+
+Files analyzed: 5
+- src/auth/middleware.ts
+- src/auth/tokens.ts
+- src/utils/jwt.ts
+- src/config/auth.ts
+- tests/auth.test.ts
+
+Time range: Last 30 days
+Tracks checked: 8 (3 active, 5 archived)
+
+All files are clear for modification. Proceed with confidence!
+
+💡 Tip: Re-run this check before committing to catch any new changes.
+```
+
+### MemoryGraph Empty
+```
+ℹ️  No historical context available
+
+This appears to be a new project or MemoryGraph hasn't been populated yet.
+
+Conflict detection requires:
+- File context memories from previous tracks
+- Track completion data in MemoryGraph
+
+To build context:
+1. Run /memory:learn-track after completing tracks
+2. Store file_context memories during work
+3. Run /memory:auto-learn on archived tracks
+
+Current check: Git-only conflict detection (if in git repo)
+Future checks: Will include MemoryGraph intelligence as data grows
+```
+
+## OUTPUT MODES
+
+### Compact Mode
+```bash
+/memory:detect-conflicts --compact
+
+🔍 Conflicts: 1 high, 2 medium, 0 low
+🔴 src/auth/middleware.ts (modified 6h ago in feature-2fa-auth)
+🟡 src/utils/jwt.ts (modified 2d ago in bugfix-token-expiry)
+🟡 src/config/stripe.ts (modified 2mo ago in feature-subscription)
+
+Action: Review src/auth/middleware.ts before proceeding
+```
+
+### JSON Mode
+```bash
+/memory:detect-conflicts --json
+
+{
+  "summary": {
+    "files_analyzed": 5,
+    "conflicts_detected": 3,
+    "high_severity": 1,
+    "medium_severity": 2,
+    "low_severity": 0
+  },
+  "conflicts": [
+    {
+      "file": "src/auth/middleware.ts",
+      "severity": "high",
+      "last_modified": "2025-12-27T04:00:00Z",
+      "track": "feature-2fa-authentication",
+      "status": "active",
+      "recommendations": [...]
+    }
+  ]
+}
+```
+
+## IMPORTANT NOTES
+
+1. **Proactive**: Best used before starting work, not after conflicts arise
+2. **Supplementary**: Complements git, doesn't replace it
+3. **Context-aware**: Provides semantic understanding beyond file changes
+4. **Team-friendly**: Enables coordination in multi-developer environments
+5. **Learning**: Improves over time as MemoryGraph grows
+
+## BEGIN CONFLICT DETECTION
+
+Now, proceed to detect conflicts for the specified files or current track context.
+"""
