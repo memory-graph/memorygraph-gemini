@@ -6,12 +6,7 @@
   "mcpServers": {
     "memorygraph": {
       "command": "memorygraph",
-      "args": [],
-      "env": {
-        "MEMORY_BACKEND": "${MEMORY_BACKEND:-sqlite}",
-        "MEMORYGRAPH_API_KEY": "${MEMORYGRAPH_API_KEY}",
-        "MEMORYGRAPH_DATA_DIR": "${MEMORYGRAPH_DATA_DIR}"
-      }
+      "args": []
     }
   }
 }
