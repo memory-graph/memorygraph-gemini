@@ -1,0 +1,23 @@
+{
+  "name": "memorygraph-gemini",
+  "version": "1.0.0",
+  "description": "Persistent graph-based memory extension for Gemini CLI",
+  "keywords": [
+    "gemini-cli",
+    "gemini-cli-extension",
+    "mcp",
+    "memory",
+    "knowledge-graph",
+    "ai-memory"
+  ],
+  "author": "Gregory Dickson",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/memorygraphdev/memorygraph-gemini"
+  },
+  "homepage": "https://memorygraph.dev",
+  "bugs": {
+    "url": "https://github.com/memorygraphdev/memorygraph-gemini/issues"
+  }
+}
