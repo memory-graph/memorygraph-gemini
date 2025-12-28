@@ -40,7 +40,7 @@ Load and analyze:
 - **Blockers + resolutions** → `problem` + `solution` memory pairs with SOLVES relationship
 - **Workflow adjustments** → `workflow` memories (process improvements)
 - **Performance issues** → `problem` memory linked to optimization `solution`
-- **Bug fixes** → `error` + `fix` memory pairs with FIXES relationship
+- **Bug fixes** → `error` + `fix` memory pairs with SOLVES relationship
 
 #### From implementation artifacts
 **Extract as:**
@@ -76,7 +76,7 @@ Link related memories using these relationship types:
 
 **Problem-Solution Flow:**
 - `problem` → SOLVES → `solution`
-- `error` → FIXES → `fix`
+- `error` → SOLVES → `fix`
 
 **Dependencies:**
 - `task` → REQUIRES → `technology`

@@ -515,7 +515,7 @@ MemoryGraph isn't just for Gemini CLI. It's the **memory layer for any AI coding
 - [Main MemoryGraph Repository](https://github.com/memory-graph/memorygraph)
 - [Gemini CLI Extensions Gallery](https://geminicli.com/extensions/)
 - [Report Issues](https://github.com/memory-graph/memorygraph-gemini/issues)
-- [Blog Post: Announcing MemoryGraph for Gemini CLI](docs/blog-post-draft.md)
+- [Blog Post: Announcing MemoryGraph for Gemini CLI](marketing/blog-post-draft.md)
 
 ## Community
 

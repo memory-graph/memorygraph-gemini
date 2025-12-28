@@ -8,6 +8,8 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # Logs
 *.log
@@ -15,3 +17,24 @@ Thumbs.db
 # Local env
 .env
 .env.local
+.env.*
+
+# MemoryGraph data (should not be committed)
+*.db
+memorygraph.db
+.memorygraph/
+
+# Marker files from auto-learn command
+.memorygraph-processed
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+__pycache__/
+*.pyc
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/

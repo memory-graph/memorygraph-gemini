@@ -279,7 +279,7 @@ Consider creating a higher-level pattern memory:
 
 ### Relationships Created
 - SOLVES: 4
-- FIXES: 2
+- SOLVES: 2
 - WORKS_WITH: 3
 - OCCURS_IN: 8
 - REQUIRES: 2
